@@ -1,0 +1,11 @@
+( "core" include )
+( "*" "core" use )
+
+
+: printline puts newline ;
+: {} puts puts ;
+: cake "fresh " {} " cake" printline ;
+
+"the cake is a lie" printline
+"strawberry" cake
+

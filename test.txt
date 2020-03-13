@@ -1,0 +1,6 @@
+: bake ;
+
+
+"man ""you"" are right"
+the cake is a lie
+'testa cake
