@@ -1,0 +1,2 @@
+- add some way to declare variables
+    - (compile time words ?)

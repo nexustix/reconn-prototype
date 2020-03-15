@@ -35,7 +35,7 @@ def read_token(stream):
 
 
 if __name__ == "__main__":
-
+    '''
     print(string.whitespace)
     stream = open("test.rcn", "r")
 
@@ -43,3 +43,11 @@ if __name__ == "__main__":
     for i in range(10):
         cake = read_token(stream)
         print(cake)
+    '''
+
+    h = open("test.rcn", "r")
+    token_data = read_token(h)
+
+    while token_data[0]:
+        print(token_data)
+        token_data = read_token(h)

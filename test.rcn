@@ -1,11 +1,90 @@
 ( "core" include )
 ( "*" "core" use )
 
-
+(
 : printline puts newline ;
-: {} puts puts ;
-: cake "fresh " {} " cake" printline ;
+: {} concat ;
+: format swap concat ;
+: cake "fresh " {} " cake" format ;
 
 "the cake is a lie" printline
-"strawberry" cake
+"strawberry" cake printline
+)
 
+(
+: printline puts newline ;
+
+: {} concat ;
+: format swap concat ;
+
+: xml_open "<" {} ">" format ;
+: xml_close "</" {} ">" format ;
+: xml swap dup xml_close swap xml_open over swap concat concat ;
+: xml+ xml swap concat ;
+
+"html"
+
+  "header"
+    "title"
+      "My amazing website"
+    xml
+  xml
+
+  "body"
+    "hello"
+  xml+
+
+xml
+
+printline
+)
+
+(
+def printline puts newline end
+
+def yes "it is true !" printline end
+def no "it is false !" printline end
+
+0 'yes 'no if
+1 'yes 'no if
+)
+
+
+(
+: do_fizz "Fizz" puts ;
+: do_buzz "Buzz" puts ;
+: fizz dup 3 % 0 = 'do_fizz when ;
+: buzz dup 5 % 0 = 'do_buzz when ;
+: justnumber dup puts " " puts ;
+
+: fizzbuzz 1 add dup
+  justnumber
+  fizz buzz
+  ", " puts
+
+  32 < 'fizzbuzz when ;
+
+0 fizzbuzz
+newline
+)
+
+
+(
+def printline puts newline end
+def {} concat end
+def format swap concat end
+def cake "fresh " {} " cake" format end
+
+"the cake is a lie" printline
+"strawberry" cake printline
+)
+
+
+def printline puts newline end
+
+( def tmp var end )
+def tmp 10 reserve end
+
+tmp get printline
+'cake tmp set
+tmp get printline
