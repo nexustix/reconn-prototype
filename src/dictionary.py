@@ -33,7 +33,7 @@ if __name__ == "__main__":
     d = Dictionary()
 
     def testa():
-        psss
+        pass
 
     d["print"] = testa
     #d["print"] = "test"

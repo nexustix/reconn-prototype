@@ -79,12 +79,76 @@ def cake "fresh " {} " cake" format end
 "strawberry" cake printline
 )
 
-
+(
 def printline puts newline end
 
-( def tmp var end )
 def tmp 10 reserve end
 
 tmp get printline
 'cake tmp set
 tmp get printline
+)
+
+
+(
+def do_fizz "Fizz" put end
+def do_buzz "Buzz" put end
+def fizz 3 % 0 = 'do_fizz when end
+def buzz 5 % 0 = 'do_buzz when end
+
+def i var end
+def next i get 1 + i set end
+
+def fizzbuzz
+  i get
+  dup put
+  " " put
+  dup fizz
+  dup buzz
+  ", " put
+  next
+  i get 32 < 'fizzbuzz when
+end
+
+fizzbuzz nl put
+)
+
+
+
+
+def format swap concat end
+def xml_open "<" {} ">" format end
+def xml_close "</" {} ">" format end
+def xml swap dup xml_close swap xml_open over swap concat concat end
+def xml+ xml swap concat end
+
+(
+"html"
+
+  "header"
+    "title"
+      "My amazing website"
+    xml
+  xml
+
+  "body"
+    "hello"
+  xml+
+
+xml
+
+putline
+)
+
+def {} swap concat end
+
+def xml_open "<" {} ">" concat end
+def xml_close "</" {} ">" concat end
+
+def xml dup xml_open swap xml_close rot swap concat concat end
+
+"My amazing website" "title" xml "header" xml
+"Hello world" "body" xml concat
+"html" xml
+
+putline

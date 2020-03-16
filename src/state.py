@@ -12,9 +12,12 @@ def as_number(token):
     except TypeError: pass;
     return (None, None)
 
-def as_string(token):
+def as_string(token, remove_quotes):
     if type(token) == str and token.startswith('"') and token.endswith('"'):
-        return (True, token[1:-1])
+        if remove_quotes:
+            return (True, token[1:-1])
+        else:
+            return (True, token)
     return (None, None)
 
 def as_quote(token):
@@ -24,12 +27,12 @@ def as_quote(token):
 
 
 #HACK
-def as_whatever(token):
+def as_whatever(token, remove_quotes):
     success, v = as_number(token)
     if success:
         return True, v
     
-    success, v = as_string(token)
+    success, v = as_string(token, remove_quotes)
     if success:
         return True, v
 
@@ -79,26 +82,8 @@ class State():
             
             if self.do_specials(token):
                 return
-            '''
-            success, v = as_number(token)
-            if success:
-                #self.stack.append(n)
-                self.push(v)
-                return
-            
-            success, v = as_string(token)
-            if success:
-                #self.stack.append(s)
-                self.push(v)
-                return
 
-            success, v = as_quote(token)
-            if success:
-                #self.stack.append(s)
-                self.push(v)
-                return
-            '''
-            success, v = as_whatever(token)
+            success, v = as_whatever(token, True)
             if success:
                 self.push(v)
                 return
@@ -119,25 +104,20 @@ class State():
             data(self)
         else:
             for word in data:
-                #self.run_word(word)
                 self.consume_token(None, word)
 
     def do_specials(self, token):
-        #print(">",token)
         if self.mode == _compile:
             if token in self.compile_dict:
                 kind, data = self.compile_dict[token]
-                #if kind == "primary":
                 data(self)
 
             elif token == 'end':
-                #print("- end compile")
                 self.mode = _normal
                 self.main_dict[self.wordbuffer[0]] = self.wordbuffer[1:]
                 self.wordbuffer = []
             else:
-                #print("- add word")
-                success, v = as_whatever(token)
+                success, v = as_whatever(token, False)
                 if success:
                     self.wordbuffer.append(v)
                 else:
@@ -145,7 +125,6 @@ class State():
             return True
 
         if token == 'def':
-            #print("- start compile")
             self.mode = _compile
             return True
 
