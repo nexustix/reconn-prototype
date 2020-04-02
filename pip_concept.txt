@@ -1,0 +1,25 @@
+def <name>
+    <words>
+    end
+
+-- flow --
+<label> #do
+<label> <boolean> #when
+<label> <label> <boolean> #if
+<any> <any> #eq
+
+-- namespaces --
+#namespace ( -- string )
+#enter ( string -- )
+#leave ( -- )
+#top ( -- )
+
+-- variables --
+#alloc ( int -- pointer)
+
+-- modules --
+#import  ( string -- ) for core modules
+#include ( string -- ) for pip modules
+
+-- special --
+#bytes ( int -- )
