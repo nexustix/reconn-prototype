@@ -4,6 +4,9 @@ from memory import Memory
 _normal = "normal"
 _compile = "compile"
 
+_def = "def"
+_end = "end"
+
 class VM():
 
     def __init__(self):
@@ -19,13 +22,31 @@ class VM():
         self.comment = 0
         self.word_buffer = []
 
+        self.running = True
+
     @property
     def namespace(self):
         return ".".join(self.namespace_stack)
 
+    def push_namespace(self, name):
+        self.namespace_stack.append(name)
+
+    def pop_namespace(self):
+        return self.namespace_stack.pop()
+
     def spacename(self, name):
         if self.namespace:
             return ".".join([self.namespace, name])
+        return name
+
+    def spacevariants(self, name):
+        segs = self.namespace.split(".")
+        name = str(name)
+        for n in range(len(segs), 0, -1):
+            tmp_token = ".".join(segs[0:n]+[name])
+            if tmp_token in self.composite_dict:
+                return tmp_token
+        return name
 
     @property
     def state(self):
@@ -65,71 +86,77 @@ class VM():
         # HACK
         success, value = kinds.as_whatever(token, True)
         _, value_fancy = kinds.as_whatever(token, False)
-        # print(success, value)
+        ntoken = self.spacevariants(token)
 
         if value == "(":
             self.comment += 1
-
-        elif value == ")":
-            self.comment -= 0
-            if self.comment < 0:
-                raise Exception("Unbalanced comments")
-
-        if self.comment:
             return
 
-        if value == "def":
+        elif value == ")":
+            self.comment -= 1
+            if self.comment < 0:
+                raise Exception("Unbalanced comments")
+            return
+        
+        if self.comment > 0:
+            return
+
+        if value == _def:
             self.push_state(_compile)
             if len(self.word_buffer) > 0:
-                self.word_buffer.append("def")
-                # print(self.state_stack)
+                self.word_buffer.append(_def)
                 return
 
         if self.state == _normal:
             if (success != None):
                 self.push_value(value)
-            elif token in self.composite_dict:
-                for w in self.composite_dict[token]:
+            # elif ntoken in self.composite_dict:
+            #     for w in self.composite_dict[ntoken]:
+            #         self.run(w)
+            # elif token in self.composite_dict:
+            #     for w in self.composite_dict[token]:
+            #         self.run(w)
+            elif ntoken in self.composite_dict:
+                for w in self.composite_dict[ntoken]:
                     self.run(w)
             elif token in self.primitive_dict:
                 self.push_run(token)
             else:
-                raise Exception("Unknown word >{}<".format(token))
+                raise Exception("Unknown word >{}< or >{}<".format(token, ntoken))
 
         elif self.state == _compile:
             if value in self.compile_dict:
                 self.compile_dict[value](self)
-            elif value == "end":
-                # print("end")
+            elif value == _end:
                 if not (self.state == _compile):
-                   raise Exception('Mismatched "end"')
+                   raise Exception('Mismatched end token')
                 self.pop_state()
-                # print(self.state_stack)
                 if self.state != _compile:
-                    self.add_composite(self.word_buffer[1], self.word_buffer[2:])
+                    self.add_composite(self.spacename(self.word_buffer[1]), self.word_buffer[2:])
                     self.word_buffer = []
                 else:
-                    self.word_buffer.append("end")
+                    self.word_buffer.append(_end)
             else:
-                self.word_buffer.append(value_fancy)
-
+                if ntoken in self.composite_dict:
+                    self.word_buffer.append(ntoken)
+                else:
+                    self.word_buffer.append(value_fancy)
         self._execute()
 
     def _execute(self):
         while len(self.run_stack) > 0:
             word = self.pop_run()
-            # print(word)
             self.primitive_dict[word](self)
 
-    def allot_mem(self, size):
+    def allot_memory(self, size):
         return self.memory.reserve(size)
 
-    def read_mem(self, index):
+    def read_memory(self, index):
         return self.memory[index]
 
-    def write_mem(self, index, data):
+    def write_memory(self, index, data):
         self.memory[index] = data
 
-    def free_mem(self, index, size=1):
+    def free_memory(self, index, size=1):
         self.memory.clear(index)
             

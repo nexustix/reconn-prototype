@@ -1,0 +1,105 @@
+(
+def yes
+    "it is true" puts
+end
+
+def no
+    "it is false" puts
+end
+
+"strawberry" cake.bake
+
+1 'yes 'no if
+0 'yes 'no if
+
+def cheese 1 allot end
+
+cheese get .s
+13 cheese set .s
+cheese get .s
+)
+
+(
+def {} concat end
+def format swap concat end
+
+
+def toast "Toast" println end
+def cake "Cake" println end
+
+"cake" #enter
+    def bake
+        "fresh " print print " cake" println
+    end
+
+    def bakerer
+        dup
+        bake
+        bake
+        toast
+    end
+#leave
+
+def test
+    "a" {} "b" {} "c" format
+end
+
+"strawberry" cake.bake
+"cheese" cake.bakerer
+"testa" #enter
+#namespace cake.bake
+#leave
+)
+
+
+def do_fizz " Fizz" print end
+def do_buzz " Buzz" print end
+def fizz 3 % 0 = 'do_fizz when end
+def buzz 5 % 0 = 'do_buzz when end
+
+def i 1 allot end
+def next i get 1 + i set end
+
+def fizzbuzz
+  i get
+  dup print
+  dup fizz
+  buzz
+  ", " print
+  next i get 302 <= 'fizzbuzz when
+end
+
+fizzbuzz "" println
+
+
+(
+"uno" #enter
+  def hello
+    "Aloha" println
+  end
+    "due" #enter
+      "tre" #enter
+        def foo
+          hello
+        end
+    #leave
+  #leave
+#leave
+
+uno.due.tre.foo
+)
+(
+"uno" #enter
+  def hello
+    "Aloha" println
+  end
+#leave
+
+"uno.due.tre" #enter
+  def foo
+    hello
+  end
+#leave
+
+uno.due.tre.foo
+)

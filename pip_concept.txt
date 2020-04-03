@@ -15,7 +15,9 @@ def <name>
 #top ( -- )
 
 -- variables --
-#alloc ( int -- pointer)
+#allot ( int -- pointer )
+get ( pointer -- any )
+set ( int pointer -- )
 
 -- modules --
 #import  ( string -- ) for core modules
