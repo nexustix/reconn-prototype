@@ -12,15 +12,17 @@ def _putline(self):
     print(s, end="\n")
 
 def _printstack(self):
-    print(self.val_stack)
+    print(self.value_stack)
 
 def _state(self):
     print("=== DEBUG ===")
-    print("val_stack",self.val_stack)
+    print("namespace", self.namespace)
+    print("value_stack",self.value_stack)
     print("run_stack",self.run_stack)
     print("state_stack",self.state_stack)
     print("word_buffer",self.word_buffer)
-    print("composite_dict",self.composite_dict)
+    # print("primary_words",list(self.primary_words.keys()))
+    print("secondary_words",self.secondary_words)
     print("=== END DEBUG ===")
 
 def add_all(self):

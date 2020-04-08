@@ -8,21 +8,28 @@ _def = "def"
 _end = "end"
 
 class VM():
-
+    
     def __init__(self):
-        self.val_stack = []
+        self.value_stack = []
         self.run_stack = []
-        self.primitive_dict = {}
-        self.composite_dict = {}
-        self.compile_dict = {}
+
         self.memory = Memory()
 
-        self.state_stack = []
-        self.namespace_stack = []
-        self.comment = 0
+        self.primary_words = {}
+        self.secondary_words = {}
+        self.compile_words = {}
+
         self.word_buffer = []
 
+        self.comment = 0
+        self.state_stack = []
+        self.namespace_stack = []
+
         self.running = True
+    
+    @property
+    def working(self):
+        return self.run_stack > 0
 
     @property
     def namespace(self):
@@ -42,11 +49,16 @@ class VM():
     def spacevariants(self, name):
         segs = self.namespace.split(".")
         name = str(name)
-        for n in range(len(segs), 0, -1):
-            tmp_token = ".".join(segs[0:n]+[name])
-            if tmp_token in self.composite_dict:
-                return tmp_token
+        # print(segs, name)
+        if segs[0]:
+            for n in range(len(segs), 0, -1):
+                tmp_token = ".".join(segs[0:n]+[name])
+                # print(">>", tmp_token)
+                if tmp_token in self.secondary_words:
+                    return tmp_token
         return name
+        #print(">X>",name)
+
 
     @property
     def state(self):
@@ -62,10 +74,10 @@ class VM():
         return self.state_stack.pop()
 
     def push_value(self, value):
-        self.val_stack.append(value)
+        self.value_stack.append(value)
 
     def pop_value(self):
-        return self.val_stack.pop()
+        return self.value_stack.pop()
 
     def push_run(self, word):
         self.run_stack.append(word)
@@ -74,79 +86,77 @@ class VM():
         return self.run_stack.pop()
 
     def add_primitive(self, name, function):
-        self.primitive_dict[name] = function
+        self.primary_words[name] = function
 
-    def add_composite(self, name, words):
-        self.composite_dict[name] = list(words)
+    def add_secondary(self, name, words):
+        self.secondary_words[name] = list(words)
 
     def add_compiled(self, name, function):
-        self.compile_dict[name] = function
+        self.compile_words[name] = function
 
-    def run(self, token):
-        # HACK
-        success, value = kinds.as_whatever(token, True)
-        _, value_fancy = kinds.as_whatever(token, False)
-        ntoken = self.spacevariants(token)
+    def execute(self, word):
+        self.push_run(word)
+        self.run()
 
-        if value == "(":
-            self.comment += 1
-            return
-
-        elif value == ")":
-            self.comment -= 1
-            if self.comment < 0:
-                raise Exception("Unbalanced comments")
-            return
-        
-        if self.comment > 0:
-            return
-
-        if value == _def:
-            self.push_state(_compile)
-            if len(self.word_buffer) > 0:
-                self.word_buffer.append(_def)
-                return
-
-        if self.state == _normal:
-            if (success != None):
-                self.push_value(value)
-            # elif ntoken in self.composite_dict:
-            #     for w in self.composite_dict[ntoken]:
-            #         self.run(w)
-            # elif token in self.composite_dict:
-            #     for w in self.composite_dict[token]:
-            #         self.run(w)
-            elif ntoken in self.composite_dict:
-                for w in self.composite_dict[ntoken]:
-                    self.run(w)
-            elif token in self.primitive_dict:
-                self.push_run(token)
-            else:
-                raise Exception("Unknown word >{}< or >{}<".format(token, ntoken))
-
-        elif self.state == _compile:
-            if value in self.compile_dict:
-                self.compile_dict[value](self)
-            elif value == _end:
-                if not (self.state == _compile):
-                   raise Exception('Mismatched end token')
-                self.pop_state()
-                if self.state != _compile:
-                    self.add_composite(self.spacename(self.word_buffer[1]), self.word_buffer[2:])
-                    self.word_buffer = []
-                else:
-                    self.word_buffer.append(_end)
-            else:
-                if ntoken in self.composite_dict:
-                    self.word_buffer.append(ntoken)
-                else:
-                    self.word_buffer.append(value_fancy)
-        self._execute()
-
-    def _execute(self):
+    def run(self):
         while len(self.run_stack) > 0:
             word = self.pop_run()
-            self.primitive_dict[word](self)
+
+            if word == "(":
+                self.comment += 1
+                return
+
+            elif word == ")":
+                self.comment -= 1
+                if self.comment < 0:
+                    raise Exception("Unbalanced comments")
+                return
+            
+            if self.comment > 0:
+                return
+
+            if word == _def:
+                self.push_state(_compile)
+                if len(self.word_buffer) > 0:
+                    self.word_buffer.append(word)
+                    return
+
+            if self.state == _compile:
+                if word == _end:
+                    self.pop_state()
+                    if self.state != _compile:
+                        self.add_secondary(self.spacename(self.word_buffer[1]), self.word_buffer[2:])
+                        self.word_buffer = []
+                elif word in self.compile_words:
+                    self.compile_words[word](self) 
+                else:
+                    success, value = kinds.as_whatever(word, False)
+                    if success:
+                        self.word_buffer.append(value)
+                    elif word in self.primary_words:
+                        self.word_buffer.append(word)
+                    else:
+                        sword = self.spacevariants(word)
+                        self.word_buffer.append(sword)
+            else:
+                if (word == _end) and (not (self.state == _compile)):
+                    raise Exception('Mismatched end token')
+                elif word in self.primary_words:
+                    self.primary_words[word](self)
+                else:
+                    #sword = self.spacevariants(self.spacename(word))
+                    sword = self.spacevariants(word)
+                    # print(">",sword)
+                    if sword in self.secondary_words:
+                        for w in self.secondary_words[sword][-1::-1]:
+                            self.push_run(w)
+                    else:
+                        success, value = kinds.as_whatever(word, True)
+                        if success:
+                            # print(">", value)
+                            self.push_value(value)
+                        else:
+                            raise Exception("Unknown word >{}<".format(word))
 
     def allot_memory(self, size):
         return self.memory.reserve(size)
@@ -159,4 +169,3 @@ class VM():
 
     def free_memory(self, index, size=1):
         self.memory.clear(index)
-            

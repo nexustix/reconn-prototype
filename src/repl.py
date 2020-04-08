@@ -52,10 +52,6 @@ pip.add_primitive("set", _set)
 
 pip.add_compiled("allot", _reserve)
 
-#HACK #HACK #HACK
-sys.setrecursionlimit(2147483647)
-#HACK #HACK #HACK
-
 args = sys.argv[1:]
 if len(args) >= 1:
     # print(args[0])
@@ -67,7 +63,8 @@ if len(args) >= 1:
 
         while token_data[0]:
             #try:
-            pip.run(token_data[1])
+            # pip.run(token_data[1])
+            pip.execute(token_data[1])
             #except Exception as e:
             #    print(" <!> " + str(e))
             #    break
@@ -80,7 +77,8 @@ else:
         token_data = read_token(sys.stdin)
         while token_data[0]:
             try:
-                pip.run(token_data[1])
+                #pip.run(token_data[1])
+                pip.execute(token_data[1])
             except Exception as e:
                 print(" <!> " + str(e))
                 break

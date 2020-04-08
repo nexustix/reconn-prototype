@@ -6,19 +6,19 @@ def _if(self):
 
     # print(yes, no)
     if a:
-        self.run(yes)
-        # self.push_run(yes)
+        # self.run(yes)
+        self.push_run(yes)
     else:
-        self.run(no)
-        # self.push_run(no)
+        # self.run(no)
+        self.push_run(no)
 
 def _when(self):
     yes = self.pop_value()
     a = self.pop_value()
     # print(">",yes, "<")
     if a:
-        self.run(yes)
-        # self.push_run(yes)
+        # self.run(yes)
+        self.push_run(yes)
 
 def add_all(self):
     self.add_primitive("if", _if)
