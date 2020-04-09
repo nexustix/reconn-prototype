@@ -2,14 +2,14 @@
 
 def _put(self):
     s = self.pop_value()
-    print(s, end="")
+    print(s, end="", flush=True)
 
 def _newline(self):
     self.push_value("\n")
 
 def _putline(self):
     s = self.pop_value()
-    print(s, end="\n")
+    print(s, end="\n", flush=True)
 
 def _printstack(self):
     print(self.value_stack)

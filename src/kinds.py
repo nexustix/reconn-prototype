@@ -20,7 +20,7 @@ def as_string(token, remove_quotes):
     return (None, None)
 
 def as_quote(token, remove_quotes):
-    if type(token) == str and token.startswith("'"):
+    if type(token) == str and token.startswith(":"):
         if remove_quotes:
             return (True, token[1:])
         else:

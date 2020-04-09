@@ -1,5 +1,6 @@
 import kinds
 from memory import Memory
+from util import warn
 
 _normal = "normal"
 _compile = "compile"
@@ -97,6 +98,12 @@ class VM():
     def execute(self, word):
         self.push_run(word)
         self.run()
+
+    def execute_all(self, words, ok=False):
+        for word in words:
+            self.execute(word)
+        if ok:
+            warn(" OK>", end="", flush=True)
 
     def run(self):
         while len(self.run_stack) > 0:
