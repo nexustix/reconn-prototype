@@ -30,10 +30,21 @@ def _rot(self):
     self.push_value(a)
     self.push_value(c)
 
-def add_all(self):
-    self.add_primitive("swap", _swap)
-    self.add_primitive("drop", _drop)
-    self.add_primitive("dup", _dup)
-    self.add_primitive("over", _over)
-    self.add_primitive("rot", _rot)
+# def add_all(self):
+#     self.add_primitive("swap", _swap)
+#     self.add_primitive("drop", _drop)
+#     self.add_primitive("dup", _dup)
+#     self.add_primitive("over", _over)
+#     self.add_primitive("rot", _rot)
+
+def words(prefix=""):
+    if prefix:
+        prefix = prefix+"."
+    return [[
+        ("{}swap".format(prefix), _swap),
+        ("{}drop".format(prefix), _drop),
+        ("{}dup".format(prefix), _dup),
+        ("{}over".format(prefix), _over),
+        ("{}rot".format(prefix), _rot)
+    ],[]]
     

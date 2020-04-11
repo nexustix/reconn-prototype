@@ -11,6 +11,8 @@ import vocabularies.stack as stack
 import vocabularies.logic as logic
 import vocabularies.flow as flow
 import vocabularies.arithmetic as arithmetic
+import vocabularies.string as string
+import vocabularies.memory as memory
 
 content_roots = [
     str(Path.joinpath(Path.home(), ".local/lib/reconn0")),
@@ -18,11 +20,37 @@ content_roots = [
     ]
 
 pip = VM()
+
+core_modules = {}
+
+"""
 rio.add_all(pip)
 stack.add_all(pip)
 logic.add_all(pip)
 flow.add_all(pip)
 arithmetic.add_all(pip)
+string.add_all(pip)
+"""
+
+# def add_all(self, prefix=""):
+#     for w in words(prefix):
+#         self.add_primitive(w[0], w[1])
+
+"""
+core_modules["io"] = rio.add_all
+core_modules["stack"] = stack.add_all
+core_modules["logic"] = logic.add_all
+core_modules["math"] = arithmetic.add_all
+core_modules["string"] = string.add_all
+"""
+
+core_modules["io"] = rio.words
+core_modules["stack"] = stack.words
+# core_modules["logic"] = logic.words
+core_modules["flow"] = flow.words
+# core_modules["math"] = arithmetic.words
+core_modules["string"] = string.words
+core_modules["memory"] = memory.words
 
 pip.add_primitive("concat", arithmetic._add)
 
@@ -32,21 +60,6 @@ def _enter(self):
 
 def _leave(self):
     self.pop_namespace()
-
-def _get(self):
-    a = self.pop_value()
-    v = self.read_memory(a)
-    self.push_value(v)
-
-def _set(self):
-    a = self.pop_value()
-    b = self.pop_value()
-    self.write_memory(a, b)
-
-def _reserve(self):
-    a = self.word_buffer.pop()
-    i = self.allot_memory(a)
-    self.word_buffer.append(i)
 
 def _namespace(self):
     self.push_value(self.namespace)
@@ -74,17 +87,44 @@ def _include(self):
 
     raise Exception("unable to include >{}<".format(a))
 
+def _use(self):
+    a = self.pop_value()
+    if a in core_modules:
+        words = core_modules[a]()
+        for w in words[0]:
+            #self.add_primitive(w[0], w[1])
+            tmp = self.spacename(w[0])
+            # print("XXX", tmp)
+            self.add_primitive(tmp, w[1])
+        for w in words[1]:
+            tmp = self.spacename(w[0])
+            self.add_compiled(tmp, w[1])
+    else:
+        raise Exception("no >{}< core module".format(a))
+
+'''
+def _use_as(self):
+    b = self.pop_value()
+    a = self.pop_value()
+    if a in core_modules:
+        for w in core_modules[a](b):
+            self.add_primitive(w[0], w[1])
+    else:
+        raise Exception("no >{}< core module".format(a))
+'''
+
 pip.add_primitive("#enter", _enter)
 pip.add_primitive("#leave", _leave)
 pip.add_primitive("#namespace", _namespace)
 
-pip.add_primitive("get", _get)
-pip.add_primitive("set", _set)
+# pip.add_primitive("get", _get)
+# pip.add_primitive("set", _set)
+# pip.add_compiled("allot", _reserve)
 
-pip.add_compiled("allot", _reserve)
-
-pip.add_primitive("exit", _exit)
+pip.add_primitive("#exit", _exit)
 pip.add_primitive("#include", _include)
+pip.add_primitive("#use", _use)
+#pip.add_primitive("#useas", _use_as)
 
 args = sys.argv[1:]
 if len(args) >= 1:

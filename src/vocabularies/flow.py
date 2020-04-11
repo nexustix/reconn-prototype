@@ -20,6 +20,15 @@ def _when(self):
         # self.run(yes)
         self.push_run(yes)
 
-def add_all(self):
-    self.add_primitive("if", _if)
-    self.add_primitive("when", _when)
+#def add_all(self):
+#    self.add_primitive("if", _if)
+#    self.add_primitive("when", _when)
+
+def words(prefix=""):
+    if prefix:
+        prefix = prefix+"."
+
+    return [[
+        ("{}if".format(prefix), _if),
+        ("{}when".format(prefix), _when),
+        ],[]]
