@@ -38,17 +38,13 @@ def _replace(self):
     self.push_value(r)
 
 
-def words(prefix=""):
-    if prefix:
-        prefix = prefix+"."
-
-    return [[
-        ("{}split".format(prefix),_split),
-        ("{}nth".format(prefix), _nth),
-        ("{}concat".format(prefix), _concat),
-        # ("{}format".format(prefix), _format),
-        ("{}replace".format(prefix), _replace),
-        ],[]]
+words =[
+    [
+        ("split",_split),
+        ("nth", _nth),
+        ("concat", _concat),
+        ("replace", _replace),
+    ]]
 
 # def add_all(self, prefix=""):
 #     for w in words(prefix):

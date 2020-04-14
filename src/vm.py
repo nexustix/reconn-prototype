@@ -1,39 +1,38 @@
 import kinds
-from memory import Memory
 from util import warn
 
-_normal = "normal"
-_compile = "compile"
+from dictionary import Dictionary
+from stack import Stack
+
+_dict_primary = 0
+_dict_secondary = 1
+_dict_compile = 2
+
+_state_normal = "normal"
+_state_compile = "compile"
+_state_hard_compile = "hard"
 
 _def = "def"
 _end = "end"
 
-_bprimary = False
-_bsecondary = True
-
 class VM():
-    
+
     def __init__(self):
-        self.value_stack = []
-        self.run_stack = []
-
-        self.memory = Memory()
-
-        self.primary_words = {}
-        self.secondary_words = {}
-        self.compile_words = {}
-
-        self.word_buffer = []
-
-        self.comment = 0
+        self.run_stack = Stack()
+        self.value_stack = Stack()
         self.state_stack = []
         self.namespace_stack = []
 
+        self.dictionaries = [
+            Dictionary(),
+            Dictionary(),
+            Dictionary()
+        ]
+
+        self.word_buffer = []
+        self.comment = 0
+
         self.running = True
-    
-    @property
-    def working(self):
-        return self.run_stack > 0
 
     @property
     def namespace(self):
@@ -43,38 +42,32 @@ class VM():
         self.namespace_stack.append(name)
 
     def pop_namespace(self):
-        return self.namespace_stack.pop()
+        if len(self.namespace_stack) > 0:
+            return self.namespace_stack.pop()
+        else:
+            raise Exception("can't leave namespace, you aren't inside a namespace")
 
-    def spacename(self, name):
+
+    def spacename(self, word):
         if self.namespace:
-            return ".".join([self.namespace, name])
-        return name
+            combo = self.namespace + "." + str(word)
+            segs = combo.split(".")
+        else:
+            segs = str(word).split(".")
 
-    def spacevariants(self, name, secondary):
-        segs = self.namespace.split(".")
-        name = str(name)
-        if segs[0]:
-            for n in range(len(segs), 0, -1):
-                tmp_token = ".".join(segs[0:n]+[name])
-                if secondary:
-                    if tmp_token in self.secondary_words:
-                        return tmp_token
-                else:
-                    if tmp_token in self.primary_words:
-                        return tmp_token
-        return name
-
+        if len(segs) > 1:
+            head = segs[-1]
+            tail = ".".join(segs[:-1])
+            return (tail, head)
+        else:
+            return ("",segs[-1])
 
     @property
     def state(self):
         if len(self.state_stack) > 0:
             return self.state_stack[-1]
         else:
-            return _normal
-
-    @property
-    def hard_state(self):
-        return (len(self.state_stack) >= 2) and  (self.state_stack[-1] == self.state_stack[-2])
+            return _state_normal
 
     def push_state(self, state):
         self.state_stack.append(state)
@@ -82,29 +75,8 @@ class VM():
     def pop_state(self):
         return self.state_stack.pop()
 
-    def push_value(self, value):
-        self.value_stack.append(value)
-
-    def pop_value(self):
-        return self.value_stack.pop()
-
-    def push_run(self, word):
-        self.run_stack.append(word)
-
-    def pop_run(self):
-        return self.run_stack.pop()
-
-    def add_primitive(self, name, function):
-        self.primary_words[name] = function
-
-    def add_secondary(self, name, words):
-        self.secondary_words[name] = list(words)
-
-    def add_compiled(self, name, function):
-        self.compile_words[name] = function
-
     def execute(self, word):
-        self.push_run(word)
+        self.run_stack.push(word)
         self.run()
 
     def execute_all(self, words, ok=False):
@@ -113,77 +85,76 @@ class VM():
         if ok:
             warn(" OK>", end="", flush=True)
 
+    def do(self, word):
+        #wkey = (self.namespace, word)
+        wkey = self.spacename(word)
+        # print(wkey)
+        if self.state == _state_compile:
+            if wkey in self.dictionaries[_dict_compile]:
+                self.dictionaries[_dict_compile][wkey](self)
+                return True
+
+        elif self.state == _state_normal:
+            if wkey in self.dictionaries[_dict_primary]:
+                self.dictionaries[_dict_primary][wkey](self)
+                return True
+            elif wkey in self.dictionaries[_dict_secondary]:
+                for w in self.dictionaries[_dict_secondary][wkey][-1::-1]:
+                    self.run_stack.push(w)   
+                return True
+            else:
+                success, value = kinds.as_whatever(word, True)
+                if success:
+                    self.value_stack.push(value)
+                    return True
+
+        return False
+        
     def run(self):
         while len(self.run_stack) > 0:
-            word = self.pop_run()
-
-            if word == "(":
-                self.comment += 1
-                return
-
-            elif word == ")":
+            word = self.run_stack.pop()
+           
+            if word == "(": self.comment += 1; return
+            if word == ")": 
                 self.comment -= 1
-                if self.comment < 0:
-                    raise Exception("Unbalanced comments")
+                if self.comment < 0: raise Exception("Unbalanced comments")
                 return
-            
-            if self.comment > 0:
-                return
+            if self.comment > 0: return
 
-            if word == _def:
-                self.push_state(_compile)
-                if len(self.word_buffer) > 0:
-                    self.word_buffer.append(word)
-                    return
-
-            if self.state == _compile:
-                if word == _end:
-                    self.pop_state()
-                    if self.state != _compile:
-                        self.add_secondary(self.spacename(self.word_buffer[1]), self.word_buffer[2:])
-                        self.word_buffer = []
-                    else:
-                        self.word_buffer.append(_end)
-                elif word in self.compile_words and not self.hard_state:
-                    self.compile_words[word](self) 
-                else:
+            if self.state == _state_compile:
+                if not self.do(word):
                     success, value = kinds.as_whatever(word, False)
                     if success:
                         self.word_buffer.append(value)
                     else:
-                        sword = self.spacevariants(word, _bprimary)
-                        if sword in self.primary_words:
-                            self.word_buffer.append(sword)
-                        else:
-                            sword = self.spacevariants(word, _bsecondary)
-                            self.word_buffer.append(sword)
-            else:
-                if (word == _end) and (not (self.state == _compile)):
-                    raise Exception('Mismatched end token')
-                else:
-                    sword = self.spacevariants(word, False)
-                    if sword in self.primary_words:
-                        self.primary_words[sword](self)
-                    else:
-                        sword = self.spacevariants(word, _bsecondary)
-                        if sword in self.secondary_words:
-                            for w in self.secondary_words[sword][-1::-1]:
-                                self.push_run(w)
-                        else:
-                            success, value = kinds.as_whatever(word, True)
-                            if success:
-                                self.push_value(value)
-                            else:
-                                raise Exception("Unknown word >{}<".format(word))
+                        self.word_buffer.append(word)
 
-    def allot_memory(self, size):
-        return self.memory.reserve(size)
+            elif self.state == _state_hard_compile:
+                self.word_buffer.append(word)
+                if word == _end:
+                    self.pop_state()
 
-    def read_memory(self, index):
-        return self.memory[index]
+            elif self.state == _state_normal:
+                if not self.do(word):
+                    raise Exception("Unknown word >{}<".format(word))
 
-    def write_memory(self, index, data):
-        self.memory[index] = data
+    def add_primary(self, namespace, name, function ):
+        self.dictionaries[_dict_primary][(namespace, name)] = function
 
-    def free_memory(self, index, size=1):
-        self.memory.clear(index)
+    def add_secondary(self, namespace, name, words):
+        self.dictionaries[_dict_secondary][(namespace, name)] = words
+
+    def add_compiled(self, namespace, name, function):
+        self.dictionaries[_dict_compile][(namespace, name)] = function
+
+    def push_value(self, value):
+        self.value_stack.push(value)
+
+    def pop_value(self):
+        return self.value_stack.pop()
+
+    def push_run(self, value):
+        self.run_stack.push(value)
+
+    def pop_run(self):
+        return self.run_stack.pop()
