@@ -53,20 +53,16 @@ class VM():
     def spacevariants(self, name, secondary):
         segs = self.namespace.split(".")
         name = str(name)
-        # print(segs, name)
         if segs[0]:
             for n in range(len(segs), 0, -1):
                 tmp_token = ".".join(segs[0:n]+[name])
                 if secondary:
                     if tmp_token in self.secondary_words:
-                        # print("?>>", tmp_token)
                         return tmp_token
                 else:
                     if tmp_token in self.primary_words:
-                        # print("?>>", tmp_token)
                         return tmp_token
         return name
-        #print(">X>",name)
 
 
     @property
@@ -149,17 +145,11 @@ class VM():
                     else:
                         self.word_buffer.append(_end)
                 elif word in self.compile_words and not self.hard_state:
-                    # print("state>",self.hard_state, self.state_stack, word)
                     self.compile_words[word](self) 
                 else:
                     success, value = kinds.as_whatever(word, False)
                     if success:
                         self.word_buffer.append(value)
-                    # elif word in self.primary_words:
-                    #     #self.word_buffer.append(word)
-                    #     
-                    #     print("T>>",sword)
-                    #     self.word_buffer.append(sword)
                     else:
                         sword = self.spacevariants(word, _bprimary)
                         if sword in self.primary_words:
@@ -170,24 +160,18 @@ class VM():
             else:
                 if (word == _end) and (not (self.state == _compile)):
                     raise Exception('Mismatched end token')
-                # elif word in self.primary_words:
-                #     self.primary_words[word](self)
                 else:
                     sword = self.spacevariants(word, False)
-                    # print(">>",sword)
                     if sword in self.primary_words:
                         self.primary_words[sword](self)
                     else:
-                        #sword = self.spacevariants(self.spacename(word))
                         sword = self.spacevariants(word, _bsecondary)
-                        # print(">",sword)
                         if sword in self.secondary_words:
                             for w in self.secondary_words[sword][-1::-1]:
                                 self.push_run(w)
                         else:
                             success, value = kinds.as_whatever(word, True)
                             if success:
-                                # print(">", value)
                                 self.push_value(value)
                             else:
                                 raise Exception("Unknown word >{}<".format(word))

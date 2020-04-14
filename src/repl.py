@@ -23,27 +23,6 @@ pip = VM()
 
 core_modules = {}
 
-"""
-rio.add_all(pip)
-stack.add_all(pip)
-logic.add_all(pip)
-flow.add_all(pip)
-arithmetic.add_all(pip)
-string.add_all(pip)
-"""
-
-# def add_all(self, prefix=""):
-#     for w in words(prefix):
-#         self.add_primitive(w[0], w[1])
-
-"""
-core_modules["io"] = rio.add_all
-core_modules["stack"] = stack.add_all
-core_modules["logic"] = logic.add_all
-core_modules["math"] = arithmetic.add_all
-core_modules["string"] = string.add_all
-"""
-
 core_modules["io"] = rio.words
 core_modules["stack"] = stack.words
 # core_modules["logic"] = logic.words
@@ -76,7 +55,6 @@ def _include(self):
         for path in content_roots:
             filepath = os.path.join(path, tail + ".rcn")
             if os.path.isfile(filepath):
-                # print(filepath)
                 with open(filepath, "r") as h:
                     tokenizer = make_tokenizer(h)
                     token_data = tokenizer()
@@ -92,9 +70,7 @@ def _use(self):
     if a in core_modules:
         words = core_modules[a]()
         for w in words[0]:
-            #self.add_primitive(w[0], w[1])
             tmp = self.spacename(w[0])
-            # print("XXX", tmp)
             self.add_primitive(tmp, w[1])
         for w in words[1]:
             tmp = self.spacename(w[0])
@@ -102,29 +78,13 @@ def _use(self):
     else:
         raise Exception("no >{}< core module".format(a))
 
-'''
-def _use_as(self):
-    b = self.pop_value()
-    a = self.pop_value()
-    if a in core_modules:
-        for w in core_modules[a](b):
-            self.add_primitive(w[0], w[1])
-    else:
-        raise Exception("no >{}< core module".format(a))
-'''
-
 pip.add_primitive("#enter", _enter)
 pip.add_primitive("#leave", _leave)
 pip.add_primitive("#namespace", _namespace)
 
-# pip.add_primitive("get", _get)
-# pip.add_primitive("set", _set)
-# pip.add_compiled("allot", _reserve)
-
 pip.add_primitive("#exit", _exit)
 pip.add_primitive("#include", _include)
 pip.add_primitive("#use", _use)
-#pip.add_primitive("#useas", _use_as)
 
 args = sys.argv[1:]
 if len(args) >= 1:
@@ -141,7 +101,6 @@ if len(args) >= 1:
 else:
     warn("Reconn REPL")
     warn("Version: #HACK")
-    # warn(" OK>", end="", flush=True)
     tokenizer = make_tokenizer(sys.stdin)
     while pip.running:
         token_data = tokenizer()
