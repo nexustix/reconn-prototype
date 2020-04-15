@@ -104,3 +104,36 @@ uno.due.tre.foo
 
 uno.due.tre.foo
 )
+
+(
+:file #use
+:io #use
+
+def file "cake.txt" end
+( def write file f.write end )
+( def writenl write nl file f.write end )
+
+file "rb" open
+file readln
+s
+file close
+)
+
+(
+:io #use
+:flow #use
+
+def yes
+    "it is true" println
+end
+
+def no
+    "it is false" println
+end
+
+1 :yes :no if
+0 :yes :no if
+
+1 :yes when
+0 :yes when
+)

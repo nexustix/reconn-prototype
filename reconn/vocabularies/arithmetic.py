@@ -16,6 +16,9 @@ def _mul(self):
     b = self.pop_value()
     self.push_value(b * a)
 
+# def _div(self):
+#     a = self.pop_value()
+#     b = self.pop_value()
 
 def _mod(self):
     a = self.pop_value()

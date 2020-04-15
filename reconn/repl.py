@@ -14,6 +14,7 @@ from reconn.vocabularies import stack as stack
 from reconn.vocabularies import logic as logic
 from reconn.vocabularies import flow as flow
 from reconn.vocabularies import arithmetic as arithmetic
+from reconn.vocabularies import file as file
 
 
 content_roots = [
@@ -31,6 +32,7 @@ core_modules["stack"] = stack.words
 core_modules["logic"] = logic.words
 core_modules["flow"] = flow.words
 core_modules["arithmetic"] = arithmetic.words
+core_modules["file"] = file.words
 
 
 def _def(self: vm.VM):
@@ -142,6 +144,9 @@ def _use(self):
     else:
         raise Exception("no >{}< core module".format(a))
 
+def _do(self):
+    word = self.pop_value()
+    self.push_run(word)
 
 pip.add_primary("", vm._def, _def)
 pip.add_compiled("", vm._def, _def_compile)
@@ -157,6 +162,8 @@ pip.add_primary("", "#namespace", _namespace)
 pip.add_primary("", "#exit", _exit)
 pip.add_primary("", "#include", _include)
 pip.add_primary("", "#use", _use)
+
+pip.add_primary("", "#do", _do)
 
 args = sys.argv[1:]
 if len(args) >= 1:
