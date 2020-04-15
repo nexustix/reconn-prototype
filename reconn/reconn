@@ -1,0 +1,4 @@
+#! /usr/bin/python
+
+#HACK
+import reconn.repl

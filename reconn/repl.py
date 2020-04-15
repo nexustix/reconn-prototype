@@ -2,18 +2,18 @@ import sys
 # from pathlib import Path
 import os
 
-import vm
+from reconn import vm
 # from vm import VM
-from util import warn
-from tokenize import make_tokenizer
+from reconn.util import warn
+from reconn.tokenize import make_tokenizer
 
-from vocabularies import io as rio
-from vocabularies import string as string
-from vocabularies import memory as memory
-from vocabularies import stack as stack
-from vocabularies import logic as logic
-from vocabularies import flow as flow
-from vocabularies import arithmetic as arithmetic
+from reconn.vocabularies import io as rio
+from reconn.vocabularies import string as string
+from reconn.vocabularies import memory as memory
+from reconn.vocabularies import stack as stack
+from reconn.vocabularies import logic as logic
+from reconn.vocabularies import flow as flow
+from reconn.vocabularies import arithmetic as arithmetic
 
 
 content_roots = [

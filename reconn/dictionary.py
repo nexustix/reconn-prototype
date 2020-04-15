@@ -1,4 +1,4 @@
-import util
+from reconn import util
 
 class Dictionary():
 

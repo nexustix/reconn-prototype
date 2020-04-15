@@ -1,8 +1,8 @@
-import kinds
-from util import warn
+from reconn import kinds
+from reconn.util import warn
 
-from dictionary import Dictionary
-from stack import Stack
+from reconn.dictionary import Dictionary
+from reconn.stack import Stack
 
 _dict_primary = 0
 _dict_secondary = 1
